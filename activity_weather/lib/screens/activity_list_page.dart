@@ -1,9 +1,17 @@
 import 'package:flutter/material.dart';
 
-class ActivityListPage extends StatelessWidget {
+import 'activity_detail_page.dart';
+import 'activity_form_page.dart';
+
+class ActivityListPage extends StatefulWidget {
   const ActivityListPage({super.key});
 
-  static const activities = <Map<String, String>>[
+  @override
+  State<ActivityListPage> createState() => _ActivityListPageState();
+}
+
+class _ActivityListPageState extends State<ActivityListPage> {
+  final List<Map<String, String>> _activities = [
     {'title': 'เดินเล่น', 'date': '24 ต.ค. 2026', 'detail': 'เดินในสวน'},
     {
       'title': 'เดินชมธรรมชาติในสวนสาธารณะกลางแจ้ง',
@@ -41,25 +49,36 @@ class ActivityListPage extends StatelessWidget {
     },
   ];
 
+  Future<void> _addActivity() async {
+    final newActivity = await Navigator.push<Map<String, String>>(
+      context,
+      MaterialPageRoute(builder: (context) => const ActivityFormPage()),
+    );
+
+    if (newActivity != null) {
+      setState(() {
+        _activities.insert(0, newActivity);
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('กิจกรรม')),
-      body: activities.isEmpty
+      body: _activities.isEmpty
           ? const Center(child: Text('ยังไม่มีกิจกรรม'))
           : ListView.builder(
-              itemCount: activities.length,
+              itemCount: _activities.length,
               itemBuilder: (context, index) {
-                final item = activities[index];
+                final activity = _activities[index];
                 return InkWell(
                   onTap: () {
                     Navigator.push<void>(
                       context,
                       MaterialPageRoute<void>(
-                        builder: (context) => Scaffold(
-                          appBar: AppBar(title: Text(item['title']!)),
-                          body: Center(child: Text(item['detail']!)),
-                        ),
+                        builder: (context) =>
+                            ActivityDetailPage(activity: activity),
                       ),
                     );
                   },
@@ -67,12 +86,20 @@ class ActivityListPage extends StatelessWidget {
                     padding: const EdgeInsets.all(16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [Text(item['title']!), Text(item['date']!)],
+                      children: [
+                        Text(activity['title']!),
+                        Text(activity['date']!),
+                      ],
                     ),
                   ),
                 );
               },
             ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _addActivity,
+        icon: const Icon(Icons.add),
+        label: const Text('เพิ่มกิจกรรม'),
+      ),
     );
   }
 }
